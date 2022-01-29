@@ -22,7 +22,16 @@ public class EnderecoDTO {
 	public void setEstado(String estado) {
 		this.estado = estado;
 	}
-
-    
+	
+	public String getRua() {
+		return rua;
+	}
+	public void setRua(String rua) {
+		this.rua = rua;
+	}
+	@Override
+	public String toString() {
+		return "EnderecoDTO [rua=" + rua + ", numero=" + numero + ", estado=" + estado + "]";
+	}    
     
 }

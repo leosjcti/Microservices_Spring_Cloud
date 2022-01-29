@@ -1,26 +1,43 @@
 package br.com.leonardo.microservice.loja.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import br.com.leonardo.microservice.loja.client.FornecedorClient;
 import br.com.leonardo.microservice.loja.controller.dto.CompraDTO;
 import br.com.leonardo.microservice.loja.controller.dto.InfoFornecedorDTO;
+import br.com.leonardo.microservice.loja.dto.InfoPedidoDTO;
+import br.com.leonardo.microservice.loja.model.Compra;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 public class CompraService {
 	
+	private static final Logger LOG = LoggerFactory.getLogger(CompraService.class);
+	
 	@Autowired
-	private RestTemplate client;
+	private FornecedorClient fornecedorClient;
 
-    public void realizaCompra(CompraDTO compra) {
+    public Compra realizaCompra(CompraDTO compra) {
 
-        ResponseEntity<InfoFornecedorDTO> exchange = client.exchange("http://fornecedor/info/" + compra.getEndereco().getEstado(),
-                HttpMethod.GET, null, InfoFornecedorDTO.class);
+    	final String estado = compra.getEndereco().getEstado();
+    	
+    	LOG.info("Buscando informações do fornecedor de {}", estado);
+    	InfoFornecedorDTO info = fornecedorClient.getInfoPorEstado(estado);
+    	
+    	LOG.info("Realizando um pedido");
+    	InfoPedidoDTO pedido = fornecedorClient.realizaPedido(compra.getItens());
 
-        System.out.println(exchange.getBody().getEndereco());
+        System.out.println(info.getEndereco());
+        
+        Compra compraSalva = new Compra();
+        compraSalva.setPedidoId(pedido.getId());
+        compraSalva.setTempoDePreparo(pedido.getTempoDepreparo());
+        compraSalva.setEndereco(compra.getEndereco().toString());
+        
+        return compraSalva;
 
     }
 }
